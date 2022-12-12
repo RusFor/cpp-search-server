@@ -25,7 +25,7 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
 }
 
 ///////////////////////////////////
-void TestMinusWords() {
+void TestFindNoDocumentssWithMinusWords() {
     constexpr int doc_id = 42;
     const string content = "cat in the city minus"s;
     const vector<int> ratings = {1, 2, 3};
@@ -49,7 +49,7 @@ void TestMinusWords() {
     }
 }
 //////////////////////////////////////
-void TestMatching() {
+void TestFindMatchingDocuments() {
     constexpr int doc_id = 42;
     const string content = "cat in the city minus"s;
     const vector<int> ratings = {1, 2, 3};
@@ -60,7 +60,7 @@ void TestMatching() {
         SearchServer server;
         server.SetStopWords("in the"s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        const auto found_docs = server.MatchDocument("minus city"s, 42);
+        const auto found_docs = server.MatchDocument("minus in the city"s, 42);
         ASSERT(found_docs == compare);
     }
     
@@ -71,38 +71,44 @@ void TestMatching() {
         const auto found_docs = server.MatchDocument("minus -city"s, 42);
         ASSERT(found_docs == compare_empty);
     }
-    
-        {
-        SearchServer server;
-        server.SetStopWords("in the"s);
-        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        const auto found_docs = server.MatchDocument("minus in city"s, 42);
-        ASSERT(found_docs == compare);
-    }
 }
 ////////////////////////////////
-void TestRelevance() {
+void TestChekRelevance() {
 
     {
         SearchServer search_server;
-        search_server.SetStopWords("и в на"s);
+    search_server.SetStopWords("и в на"s);
 search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, {8, -3});
-        search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, {7, 2, 7});
-        search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {5, -12, 2, 1});
-        search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, {9});
-
+    search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, {7, 2, 7});
+    search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {5, -12, 2, 1});
+    search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, {9});
+        
+        //const double dFirstIDF = log(search_server.GetDocumentCount() * 1.0 / 1);
+        //const double dSecondIDF = log(search_server.GetDocumentCount() * 1.0 / 2);
+        //const double dThirdIDF = log(search_server.GetDocumentCount() * 1.0 / 2);
+        
+       // const double drelevance_first =  dFirstIDF * (2.0 / 4) + dThirdIDF * (1.0 / 4);
+       // const double drelevance_second = dSecondIDF * (1.0 / 4) + dThirdIDF * (1.0 / 4);
+       //const double drelevance_third = dSecondIDF * (1.0 / 4) + dThirdIDF * (1.0 / 4);
+        
         const auto& docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
         ASSERT_HINT(docs[0].relevance > docs[1].relevance, "Релевантность первого документа должна быть больше!"s);
         ASSERT_HINT(docs[1].relevance == docs[2].relevance, "Релевантность второго документа должна быть равна релевантности 3го!"s);
         
+        //ASSERT_EQUAL_HINT(docs[1].relevance, drelevance_second, "Неправильно посчитана релевантность"s); 
+        //ASSERT_EQUAL_HINT(docs[2].relevance, drelevance_third, "Неправильно посчитана релевантность"s);
+        
+        //{ document_id = 1, relevance = 0.866434, rating = 5 }
+        //{ document_id = 0, relevance = 0.173287, rating = 2 }
+        //{ document_id = 2, relevance = 0.173287, rating = -1 }
     }
 
 }
 ////////////////////////////
-void TestRating() {
-    constexpr int nrating_first = -1;
-    constexpr int nrating_second = 5;
-    constexpr int nrating_third = 2;
+void TestAddDocumentsWithDifferenRating() {
+    constexpr int nrating_first = (5 + (-12) + 2 + 1) / 4;
+    constexpr int nrating_second = (7 + 2 + 7) / 3;
+    constexpr int nrating_third = (8 + (-3)) / 2;
     
     {
         SearchServer search_server;
@@ -121,7 +127,7 @@ void TestRating() {
 }
 
 /////////////////////////////////////////
-void TestPredicate() {
+void TestFindTopDocumentsByPredicate() {
     constexpr int nfirst_id = 0;
     constexpr int nsecond_id = 2; 
     
@@ -140,7 +146,7 @@ void TestPredicate() {
 }
 
 ////////////////////////////////////////////////////
-void TestStatus() {
+void TestFindTopDocumentsWithDifferentStatus() {
     constexpr int nfirst_id = 3;
     {
         SearchServer search_server;
@@ -160,12 +166,12 @@ void TestStatus() {
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer() {
     RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
-    RUN_TEST(TestMinusWords);
-    RUN_TEST(TestMatching);
-    RUN_TEST(TestRelevance);
-    RUN_TEST(TestRating);
-    RUN_TEST(TestPredicate);
-    RUN_TEST(TestStatus);
+    RUN_TEST(TestFindNoDocumentssWithMinusWords);
+    RUN_TEST(TestFindMatchingDocuments);
+    RUN_TEST(TestChekRelevance);
+    RUN_TEST(TestAddDocumentsWithDifferenRating);
+    RUN_TEST(TestFindTopDocumentsByPredicate);
+    RUN_TEST(TestFindTopDocumentsWithDifferentStatus);
 }
 
 // --------- Окончание модульных тестов поисковой системы -----------
