@@ -104,6 +104,7 @@ public:
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
         documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
+        documents_ids_.push_back(document_id);
     }
 
     template <typename DocumentPredicate>
@@ -166,9 +167,9 @@ public:
     int GetDocumentId(int index) const {
         if(index < 0) 
             throw out_of_range("ID меньше 0."s);
-         if(index >= documents_.size())
+         if(index >= documents_ids_.size())
              throw out_of_range("ID больше количества документов."s);
-        return index;
+        return documents_ids_.at(index);
     }
 
 private:
@@ -179,6 +180,7 @@ private:
     const set<string> stop_words_;
     map<string, map<int, double>> word_to_document_freqs_;
     map<int, DocumentData> documents_;
+    vector<int> documents_ids_;
 
     [[nodiscard]] bool IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
@@ -188,7 +190,7 @@ private:
         vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
             if(!IsValidWord(word))
-               throw invalid_argument("Слово "s + word + " содержит недопуcтимые символы."s);
+               throw invalid_argument("Слово "s+ word + " содержит недопуcтимые символы."s);
             if (!IsStopWord(word)) {
                 words.push_back(word);
             }
@@ -200,15 +202,15 @@ private:
         int last_minus_index = 0;
         int size = word.size();
         if(word[0] == '-' || word[size - 1] == '-'){
-            return false;
+            throw invalid_argument("Слово "s + word + " содержит лишний знак минуса."s);
         }
         for(int i = 0; i < size; ++i) {
            if(word[i] >= '\0' && word[i] < ' '){
-               return false;
+               throw invalid_argument("Слово "s + word + " содержит недопуcтимые символы."s);
            }
             if(word[i] == '-'){
                 if(last_minus_index == i - 1){
-                   return false;
+                    throw invalid_argument("Слово "s + word + " содержит лишний знак минуса."s);
                 }
                 last_minus_index = i;
             }
