@@ -33,6 +33,7 @@ public:
     
     Paginator(Iterator begin, Iterator end, int page_size) 
     : pages_size_(page_size) {
+        assert((void("page_size должен быть больше 0."s), page_size > 0));
         for(auto it = begin; distance(it, end) > 0; it += page_size) {
             pages_.push_back({it, it + pages_size_});
         }

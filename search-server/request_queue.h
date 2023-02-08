@@ -12,7 +12,29 @@ public:
     explicit RequestQueue(const SearchServer& search_server);
     // сделаем "обёртки" для всех методов поиска, чтобы сохранять результаты для нашей статистики
     template <typename DocumentPredicate>
-    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate);
+    
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
+    
+    std::vector<Document> AddFindRequest(const std::string& raw_query) {    
+         return AddFindRequest(raw_query, DocumentStatus::ACTUAL);
+    }
+    
+    int GetNoResultRequests() const ;
+private:
+    const SearchServer& search_server_;
+    struct QueryResult {
+        bool found;
+    };
+    std::deque<QueryResult> requests_;
+    int current_size_;
+    int current_not_found_;
+    const static int min_in_day_ = 1440;
+    
+}; 
+
+template <typename DocumentPredicate>
+std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate) {
         std::vector<Document> output =  search_server_.FindTopDocuments(raw_query, document_predicate);
         QueryResult req;
         if(output.empty()) {
@@ -32,29 +54,3 @@ public:
         }
         return output;
     }
-    
-    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status) {
-
-                return AddFindRequest(
-            raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
-                return document_status == status;
-            });
-        
-    }
-    
-    std::vector<Document> AddFindRequest(const std::string& raw_query) {    
-         return AddFindRequest(raw_query, DocumentStatus::ACTUAL);
-    }
-    
-    int GetNoResultRequests() const ;
-private:
-    const SearchServer& search_server_;
-    struct QueryResult {
-        bool found;
-    };
-    std::deque<QueryResult> requests_;
-    int current_size_;
-    int current_not_found_;
-    const static int min_in_day_ = 1440;
-    
-}; 
