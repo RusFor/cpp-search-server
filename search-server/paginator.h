@@ -4,6 +4,8 @@
 
 #include "document.h"
 
+using std::literals::string_literals::operator""s;
+
 template <typename Iterator>
 class IteratorRange {
 public:
@@ -33,7 +35,9 @@ public:
     
     Paginator(Iterator begin, Iterator end, int page_size) 
     : pages_size_(page_size) {
-        assert((void("page_size должен быть больше 0."s), page_size > 0));
+        if (page_size < 1) {
+            throw std::invalid_argument("page_size must be more than 0."s);
+        }   
         for(auto it = begin; distance(it, end) > 0; it += page_size) {
             pages_.push_back({it, it + pages_size_});
         }
