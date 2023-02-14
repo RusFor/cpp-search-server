@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+/search-server/search-server.sln
+/.vs
+/CppProperties.json
+/search-server/.vs/search-server/v17
+/search-server/.vs/search-server/FileContentIndex
+/search-server/x64/Debug/search-server.tlog
+/search-server/x64/Debug
+/search-server/search-server.vcxproj.user
+/search-server/search-server.vcxproj.filters
+/search-server/search-server.vcxproj
