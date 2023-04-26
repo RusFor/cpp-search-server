@@ -1,9 +1,9 @@
 #include "remove_duplicates.h"
 
 void RemoveDuplicates(SearchServer& search_server) {
-	std::map<std::multiset<std::string>, int> m_words;
+	std::map<std::multiset<std::string_view>, int> m_words;
 	auto data = search_server.GetDocuments();
-	std::multiset<std::string> str{};
+	std::multiset<std::string_view> str{};
 	for (const auto& [id, words] : data) {
 		for (const auto& [word, freq] : words) {
 			str.insert(word);
